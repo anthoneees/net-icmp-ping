@@ -1,0 +1,46 @@
+package main
+
+import (
+	"fmt"
+	"net"
+	"os"
+)
+
+// We want to do the following
+// 1. set up raw sockets so we can send a receive packets
+// 2. allow user input to specify where we are going to ping
+// 3. construct the IP header along with the ICMP
+// 4. send the constructed message 4 times
+// 5. listen for an ICMP echo response
+// 6. parse it and print it out to the user including all stats
+func main() {
+	if len(os.Args) != 2 {
+		return
+	}
+	arg := os.Args[1]
+
+	con, _ := net.Dial("udp", "8.8.8.8:80")
+	localAddr := con.LocalAddr().(*net.UDPAddr)
+	sourceIP := localAddr.IP
+
+	ips, err := net.LookupIP(arg)
+	if err != nil {
+		return
+	}
+	destIP := ips[0]
+	destDNS, err := net.LookupAddr(destIP.String())
+	if err != nil {
+		return
+	}
+
+	fmt.Printf("Pinging %s, %s with 32 bytes of data \n", &destDNS, destIP.String())
+	fmt.Printf("Source IP: %s \n", sourceIP.String())
+
+	// example return
+	// pinging dns, ip with 32 bytes of data
+	// reply from [ip]: bytes=32 time = []ms TTL=
+	// ping statistics for ip
+	// packets : sent = x, received = y, lost = 0, (% loss)
+	// aprroximate round trip in ms:
+	// minimum = 420ms, maximum = 641ms, average = 495ms
+}
